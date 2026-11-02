@@ -1,5 +1,11 @@
 import SwiftUI
 
+/// Coordinate space of the scroll view, for reading how far it has scrolled.
+/// A file constant rather than a static on the view: generic types can't hold
+/// static constants, and the `onGeometryChange` transform is a Sendable closure
+/// that can't read the view's main actor state or capture its generic type.
+private let edgeFadingCoordinateSpace = "edgeFadingHorizontalScroll"
+
 /// A horizontal `ScrollView` that fades out at each edge with more content
 /// past it, and stays sharp at an edge once the content is scrolled up to it.
 ///
@@ -16,8 +22,6 @@ struct EdgeFadingHorizontalScrollView<Content: View>: View {
     /// Visible width of the scroll view.
     @State private var viewportWidth: CGFloat = 0
 
-    /// Coordinate space of the scroll view, for reading how far it has scrolled.
-    private static var coordinateSpace: String { "edgeFadingHorizontalScroll" }
 
     /// - Parameters:
     ///   - fadeWidth: How far each fade reaches into the scroll view.
@@ -31,10 +35,10 @@ struct EdgeFadingHorizontalScrollView<Content: View>: View {
         ScrollView(.horizontal, showsIndicators: false) {
             content
                 .onGeometryChange(for: CGRect.self) {
-                    $0.frame(in: .named(Self.coordinateSpace))
+                    $0.frame(in: .named(edgeFadingCoordinateSpace))
                 } action: { contentFrame = $0 }
         }
-        .coordinateSpace(.named(Self.coordinateSpace))
+        .coordinateSpace(.named(edgeFadingCoordinateSpace))
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { viewportWidth = $0 }
         .mask(fadeMask)
     }
