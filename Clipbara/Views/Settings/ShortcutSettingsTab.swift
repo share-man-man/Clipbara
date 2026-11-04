@@ -2,6 +2,9 @@ import SwiftUI
 import KeyboardShortcuts
 
 struct ShortcutSettingsTab: View {
+    /// Whether starting the Clip Queue with its shortcut copies the selection.
+    @AppStorage(SelectionCopy.enabledDefaultsKey) private var copiesSelection = SelectionCopy.enabledByDefault
+
     var body: some View {
         Form {
             HStack {
@@ -22,6 +25,24 @@ struct ShortcutSettingsTab: View {
                 }
                 Spacer()
                 KeyboardShortcuts.Recorder(for: .toggleClipQueue)
+            }
+            if SelectionCopy.isAvailable {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Copy Selection When Starting")
+                        Text("Starting the queue with its shortcut presses \u{2318}C for you, so what's selected becomes the first item. Needs Accessibility permission.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $copiesSelection)
+                        .labelsHidden()
+                }
+                .onChange(of: copiesSelection) { _, isOn in
+                    if isOn, !DirectPaste.hasPermission {
+                        DirectPaste.requestPermission()
+                    }
+                }
             }
             HStack {
                 Text("Clear All History")

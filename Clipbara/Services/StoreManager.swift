@@ -3,10 +3,7 @@ import os.log
 
 enum StoreManager {
 
-    static let logger = Logger(
-        subsystem: "com.minsang.PasteClip",
-        category: "StoreManager"
-    )
+    static let logger = Logger(clipbaraCategory: "StoreManager")
 
     private static let storeDirectoryName = "com.minsang.PasteClip"
     private static let storeFileName = "PasteClip.store"

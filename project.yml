@@ -8,6 +8,12 @@ options:
   createIntermediateGroups: true
   developmentLanguage: en
 
+# Local: a Release build for personal everyday use (scripts/install-local.sh).
+configs:
+  Debug: debug
+  Release: release
+  Local: release
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -62,9 +68,22 @@ targets:
           ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-Dev
           CLIPBARA_BUILD_BADGE: DEV
           CLIPBARA_BUILD_BANNER: "ClipbaraDev · DEV"
-    # Debug signing (your own team) comes from the gitignored Config/Local.xcconfig.
+        # Optimized build for personal everyday use, installed to /Applications by
+        # scripts/install-local.sh. Its own bundle ID keeps data, settings and
+        # permissions apart from the release and ClipbaraDev. Sandboxed like Debug,
+        # so the store lives in its own container. No self-update: Sparkle would
+        # replace it with the upstream release.
+        Local:
+          PRODUCT_BUNDLE_IDENTIFIER: com.minsang.PasteClip.local
+          PRODUCT_NAME: ClipbaraLocal
+          PRODUCT_MODULE_NAME: Clipbara
+          CLIPBARA_URL_SCHEME: clipbara-local
+          CLIPBARA_BUILD_BANNER: "ClipbaraLocal · LOCAL"
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: "CLIPBARA_NO_SELF_UPDATE $(inherited)"
+    # Debug and Local signing (your own team) comes from the gitignored Config/Local.xcconfig.
     configFiles:
       Debug: Config/Debug.xcconfig
+      Local: Config/Debug.xcconfig
     dependencies:
       - package: KeyboardShortcuts
       - package: Sparkle
@@ -242,6 +261,11 @@ targets:
       - path: Clipbara/Utilities/PasteKeyCode.swift
       - path: Clipbara/Utilities/ClipQueueList.swift
       - path: Clipbara/Services/ClipQueuePasteboard.swift
+      - path: Clipbara/Utilities/OwnPasteboardWrite.swift
+      - path: Clipbara/Utilities/ClipQueueWindowGeometry.swift
+      - path: Clipbara/Utilities/HistoryRetention.swift
+      - path: Clipbara/Utilities/ListDragAutoScroll.swift
+      - path: Clipbara/Utilities/PointerDrag.swift
       - path: Clipbara/Utilities/URLCommand.swift
       - path: Clipbara/Utilities/Bundle+BuildInfo.swift
       - path: Clipbara/Services/ClipUndoStack.swift

@@ -93,10 +93,16 @@ enum DesignTokens {
         static let bottomPadding: CGFloat = 16
         static let horizontalPadding: CGFloat = 16
         static let cardSpacing: CGFloat = 12
-        static let minCardHeight: CGFloat = 164
-        static let minCardWidth: CGFloat = 206
+        /// Safety floor only, kept below the smallest card the Card Size
+        /// slider produces (240pt panel: 44 nav + 24 padding + 17 always shown
+        /// scroll bar leaves 155pt). A floor inside the slider's range left
+        /// the low steps with the same card while only the panel shrank.
+        static let minCardHeight: CGFloat = 140
         /// Card width relative to its height.
         static let cardAspectRatio: CGFloat = 1.16
+        /// Width of a card at `minCardHeight`, so the width floor never kicks
+        /// in before the height floor and cards keep their proportions.
+        static let minCardWidth: CGFloat = minCardHeight * cardAspectRatio
     }
 
     // MARK: - Card Header
@@ -224,11 +230,42 @@ enum DesignTokens {
         static let darkColor = Color(white: 0.96) // #F5F5F5
     }
 
+    // MARK: - Clip Queue
+
+    enum ClipQueue {
+        /// Window size before the user resizes it: the header and about eight rows.
+        static let defaultSize = CGSize(width: 300, height: 320)
+        /// Smallest window size the user can resize to: the header and a few rows.
+        static let minimumSize = CGSize(width: 240, height: 140)
+        /// Gap to the screen's top right corner the first time the window shows.
+        static let screenMargin: CGFloat = 12
+        /// Length of the window's fade when it shows and hides.
+        static let fadeDuration: TimeInterval = 0.15
+        /// Height of the header with the title and its buttons.
+        static let headerHeight: CGFloat = 38
+        /// Width and height of a header button.
+        static let headerButtonSize: CGFloat = 22
+        /// Height of a row's content; the list adds its own space around it.
+        static let rowContentHeight: CGFloat = 22
+        /// Width and height of the remove button at the end of each row.
+        static let removeButtonSize: CGFloat = 18
+        /// Width of the column at the start of a row: a type icon, or an image's thumbnail.
+        static let leadingColumnWidth: CGFloat = 22
+        /// Height of an image's thumbnail in a row.
+        static let thumbnailHeight: CGFloat = 18
+        /// Corner radius of an image's thumbnail in a row.
+        static let thumbnailCornerRadius: CGFloat = 3
+        /// Longest text a row's tooltip shows; a longer clip is cut there.
+        static let tooltipCharacterLimit = 600
+        /// Animation of a row leaving the list.
+        static let removeAnimation: Animation = .easeInOut(duration: 0.15)
+    }
+
     // MARK: - Menu Bar
 
     enum MenuBar {
-        /// SF Symbol of the menu bar icon, also shown where the UI points to it.
-        static let symbolName = "clipboard"
+        /// Template image asset of the menu bar icon, also shown where the UI points to it.
+        static let iconAssetName = "MenuBarIcon"
     }
 }
 

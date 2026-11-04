@@ -4,11 +4,11 @@
 //
 // Usage:
 //   swift scripts/clipboard-samples.swift list
-//   swift scripts/clipboard-samples.swift all [--delay 1]
+//   swift scripts/clipboard-samples.swift all [--delay 0.5]
 //   swift scripts/clipboard-samples.swift text-long image-png color-light
 //
-// Clipbara polls the clipboard every 0.5 s, so samples written in one run are
-// spaced by --delay seconds (default 1) or only the last one would be kept.
+// Clipbara polls the clipboard every 0.1 s, so samples written in one run are
+// spaced by --delay seconds (default 0.5) or only the last one would be kept.
 // The source app on the cards is whatever app is in front, usually the terminal.
 
 import AppKit
@@ -228,7 +228,7 @@ let samples: [Sample] = [
 /// Arguments after the script name.
 var arguments = Array(CommandLine.arguments.dropFirst())
 /// Seconds between samples when writing more than one.
-var delay: TimeInterval = 1
+var delay: TimeInterval = 0.5
 if let flagIndex = arguments.firstIndex(of: "--delay") {
     guard flagIndex + 1 < arguments.count, let value = TimeInterval(arguments[flagIndex + 1]) else {
         FileHandle.standardError.write(Data("--delay needs a number of seconds\n".utf8))

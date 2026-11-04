@@ -9,6 +9,8 @@ struct CardGridView: View {
     private var pinboards: [Pinboard]
 
     @State private var filteredItems: [ClipboardItem] = []
+    /// Room the horizontal scroll bar takes under the row (`HorizontalScrollerSpace`).
+    @State private var scrollerSpace = HorizontalScrollerSpace.current
 
     var body: some View {
         Group {
@@ -22,9 +24,11 @@ struct CardGridView: View {
                 )
             } else {
                 GeometryReader { geo in
-                    // Card height: the whole row minus its top and bottom padding.
+                    // Card height: the whole row minus its top and bottom padding,
+                    // and minus a scroll bar that sits under the row rather than over it.
                     let cardH = max(
-                        geo.size.height - DesignTokens.Grid.topPadding - DesignTokens.Grid.bottomPadding,
+                        geo.size.height - DesignTokens.Grid.topPadding - DesignTokens.Grid.bottomPadding
+                            - scrollerSpace,
                         DesignTokens.Grid.minCardHeight
                     )
                     // Card width, kept in proportion to the height.
@@ -35,7 +39,10 @@ struct CardGridView: View {
                         // No edge fade: fading these colorful cards into the
                         // panel's light background washed them out. A card cut
                         // off at the panel edge shows there is more to scroll.
-                        ScrollView(.horizontal, showsIndicators: false) {
+                        // The scroll bar follows System Settings > Appearance >
+                        // Show scroll bars: a floating one sits in the row's bottom
+                        // padding, an always shown one in `scrollerSpace` below it.
+                        ScrollView(.horizontal, showsIndicators: true) {
                             LazyHGrid(rows: rows, spacing: DesignTokens.Grid.cardSpacing) {
                                 ForEach(filteredItems.indices, id: \.self) { index in
                                     let item = filteredItems[index]
@@ -62,6 +69,9 @@ struct CardGridView: View {
                             .padding(.horizontal, DesignTokens.Grid.horizontalPadding)
                             .padding(.top, DesignTokens.Grid.topPadding)
                             .padding(.bottom, DesignTokens.Grid.bottomPadding)
+                            // Center the row while it is narrower than the panel;
+                            // a longer row widens past this and scrolls as usual.
+                            .frame(minWidth: geo.size.width, alignment: .center)
                         }
                         // Let hover and selection shadows spill past the row
                         // instead of being cut off under the navigation bar.
@@ -75,6 +85,7 @@ struct CardGridView: View {
                         }
                     }
                 }
+                .tracksHorizontalScrollerSpace($scrollerSpace)
             }
         }
         .onChange(of: items) { _, newItems in

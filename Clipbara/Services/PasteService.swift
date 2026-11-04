@@ -40,8 +40,11 @@ struct PasteService {
             return
         }
 
+        /// The clipboard the item goes on.
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
+        // Tag it last, so the file URL stays the first item (Ghostty needs that).
+        defer { OwnPasteboardWrite.mark(pasteboard) }
 
         switch item.contentType {
         case .plainText, .html, .richText:
@@ -166,6 +169,7 @@ struct PasteService {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
+        OwnPasteboardWrite.mark(pasteboard)
     }
 
     /// 오래된 임시 파일 정리 (1시간 이상)

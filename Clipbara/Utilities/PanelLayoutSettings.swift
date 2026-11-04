@@ -32,8 +32,9 @@ enum PanelWidth {
 enum PanelCardSize {
     /// UserDefaults key. Missing means the default height.
     nonisolated static let defaultsKey = "panelHeight"
-    /// Slider range, in points. The low end keeps cards above
-    /// `DesignTokens.Grid.minCardHeight`.
+    /// Slider range, in points. Even with an always shown scroll bar the low
+    /// end keeps cards above `DesignTokens.Grid.minCardHeight`, so every step
+    /// changes the card size.
     static let range: ClosedRange<Double> = 240...420
     /// Slider step, in points.
     static let step: Double = 10

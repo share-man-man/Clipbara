@@ -191,7 +191,7 @@ xcodegen generate
 open Clipbara.xcodeproj
 ```
 
-Build and run the `Clipbara` scheme with <kbd>⌘</kbd> <kbd>R</kbd>. The iPhone app is the `ClipbaraiOS` scheme and needs Xcode 26. The app is Swift 6 with strict concurrency on, SwiftUI hosted inside an AppKit `NSPanel`, and SwiftData for storage. Global shortcuts come from [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts), and DMG updates from [Sparkle](https://github.com/sparkle-project/Sparkle).
+Build and run the `Clipbara` scheme with <kbd>⌘</kbd> <kbd>R</kbd>. The Debug build is `ClipbaraDev`, with its own bundle ID, icon and data, so it runs next to an installed Clipbara. To keep its Accessibility permission across rebuilds, copy `Config/Local.xcconfig.example` to `Config/Local.xcconfig` and set your team ID. For an optimized copy to use every day, `bash scripts/install-local.sh` installs `ClipbaraLocal` to `/Applications`. [CONTRIBUTING.md](CONTRIBUTING.md) has the details. The iPhone app is the `ClipbaraiOS` scheme and needs Xcode 26. The app is Swift 6 with strict concurrency on, SwiftUI hosted inside an AppKit `NSPanel`, and SwiftData for storage. Global shortcuts come from [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts), and DMG updates from [Sparkle](https://github.com/sparkle-project/Sparkle).
 
 ## Motivation
 

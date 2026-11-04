@@ -1,36 +1,61 @@
 import Carbon.HIToolbox
 import CoreGraphics
 
-/// Finds the physical key that produces "v" while Command is held.
+/// Finds the physical key that produces "v" while Command is held (and "c",
+/// for ⌘C).
 ///
 /// Apps match ⌘V by the character, not the key position, so a fixed key code
 /// sends ⌘. on Dvorak. Translating with Command held also covers layouts such
 /// as "Dvorak - QWERTY ⌘" that switch to QWERTY only while Command is down.
 enum PasteKeyCode {
     static let qwertyV = CGKeyCode(kVK_ANSI_V)
+    /// QWERTY position of C, for ⌘C.
+    static let qwertyC = CGKeyCode(kVK_ANSI_C)
 
     /// Returns the first key code whose Command layer types "v", checking the
     /// QWERTY position first. Falls back to the QWERTY position.
     static func find(in layouts: [(CGKeyCode) -> String?]) -> CGKeyCode {
-        for translate in layouts {
-            if translate(qwertyV)?.lowercased() == "v" { return qwertyV }
-            for code in 0..<CGKeyCode(128) where code != qwertyV {
-                if translate(code)?.lowercased() == "v" { return code }
-            }
-        }
-        return qwertyV
+        find("v", qwerty: qwertyV, in: layouts)
     }
 
-    /// The key for the current keyboard layout. Input methods such as Korean
+    /// Returns the first key code whose Command layer types `character`,
+    /// checking the QWERTY position first. Falls back to the QWERTY position.
+    /// - Parameters:
+    ///   - character: lowercase letter to look for, such as "v"
+    ///   - qwerty: the letter's QWERTY key code
+    ///   - layouts: translators from key code to typed text, tried in order
+    static func find(_ character: String, qwerty: CGKeyCode, in layouts: [(CGKeyCode) -> String?]) -> CGKeyCode {
+        for translate in layouts {
+            if translate(qwerty)?.lowercased() == character { return qwerty }
+            for code in 0..<CGKeyCode(128) where code != qwerty {
+                if translate(code)?.lowercased() == character { return code }
+            }
+        }
+        return qwerty
+    }
+
+    /// The V key for the current keyboard layout. Input methods such as Korean
     /// may not type Latin letters, so the ASCII capable layout is tried next.
     @MainActor
     static func current() -> CGKeyCode {
+        find("v", qwerty: qwertyV, in: currentLayouts())
+    }
+
+    /// The C key for the current keyboard layout, for ⌘C.
+    @MainActor
+    static func currentCopy() -> CGKeyCode {
+        find("c", qwerty: qwertyC, in: currentLayouts())
+    }
+
+    /// Translators for the current layout, then the ASCII capable one.
+    @MainActor
+    private static func currentLayouts() -> [(CGKeyCode) -> String?] {
+        /// The current input source, then the ASCII capable fallback.
         let sources = [
             TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
             TISCopyCurrentASCIICapableKeyboardLayoutInputSource()?.takeRetainedValue(),
         ]
-        let layouts = sources.compactMap { $0.flatMap(translator(for:)) }
-        return find(in: layouts)
+        return sources.compactMap { $0.flatMap(translator(for:)) }
     }
 
     private static func translator(for source: TISInputSource) -> ((CGKeyCode) -> String?)? {
