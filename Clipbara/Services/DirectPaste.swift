@@ -61,15 +61,39 @@ enum DirectPaste {
     /// panel is off screen, or the panel itself receives it.
     @discardableResult
     static func sendPasteShortcut() -> Bool {
+        sendCommandShortcut(keyCode: PasteKeyCode.current(), suppressesLocalKeys: true)
+    }
+
+    /// Sends ⌘C to whichever app has keyboard focus.
+    @discardableResult
+    static func sendCopyShortcut() -> Bool {
+        // The queue shortcut is already let go (`SelectionCopy.waitForRelease`),
+        // so nothing held can mix in, and the user may already be pressing ⌘C.
+        sendCommandShortcut(keyCode: PasteKeyCode.currentCopy(), suppressesLocalKeys: false)
+    }
+
+    /// Sends Command plus a key to whichever app has keyboard focus.
+    /// - Parameters:
+    ///   - keyCode: the key pressed with Command
+    ///   - suppressesLocalKeys: drop the user's own key presses for a moment
+    ///     (0.25 s by default) after posting, so keys still held can't mix in.
+    ///     Off when the user may be typing right away.
+    /// - Returns: whether the events were posted
+    private static func sendCommandShortcut(keyCode: CGKeyCode, suppressesLocalKeys: Bool) -> Bool {
         guard hasPermission else { return false }
 
-        let keyCode = PasteKeyCode.current()
+        /// Source of the posted events.
         let source = CGEventSource(stateID: .combinedSessionState)
-        // Keep keys the user is still holding from mixing into the shortcut.
-        source?.setLocalEventsFilterDuringSuppressionState(
-            [.permitLocalMouseEvents, .permitSystemDefinedEvents],
-            state: .eventSuppressionStateSuppressionInterval
-        )
+        if suppressesLocalKeys {
+            // Keep keys the user is still holding from mixing into the shortcut.
+            source?.setLocalEventsFilterDuringSuppressionState(
+                [.permitLocalMouseEvents, .permitSystemDefinedEvents],
+                state: .eventSuppressionStateSuppressionInterval
+            )
+        } else {
+            // No suppression interval: the user's next keys go through at once.
+            source?.localEventsSuppressionInterval = 0
+        }
 
         guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true),
               let keyUp = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false) else {

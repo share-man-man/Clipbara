@@ -20,6 +20,8 @@ final class AppState {
     let panelController = PanelController()
     let searchState = SearchState()
     let clipQueue = ClipQueue()
+    /// Set while the queue shortcut waits to be let go before starting the queue.
+    @ObservationIgnored private var isStartingClipQueue = false
     let clipUndo = ClipUndoStack()
 
     var selectedTab: PanelTab = .history
@@ -104,14 +106,36 @@ final class AppState {
         panelController.toggle(modelContainer: container, appState: self)
     }
 
-    func toggleClipQueue() {
+    /// Starts or ends the Clip Queue.
+    /// - Parameter fromShortcut: started with its keyboard shortcut, so the front
+    ///   app's selection can be copied in as the first item
+    func toggleClipQueue(fromShortcut: Bool = false) {
         #if APPSTORE
         if !clipQueue.isActive, !Entitlements.shared.checkHistoryAccess() {
             PaywallWindowController.shared.show()
             return
         }
         #endif
-        clipQueue.toggle()
+        // Only the shortcut leaves the user's app in front; the menu bar and URL
+        // starts have no selection to copy.
+        guard fromShortcut, !clipQueue.isActive, SelectionCopy.isEnabled else {
+            clipQueue.toggle()
+            return
+        }
+        // A second press while still waiting: the first one is starting it.
+        guard !isStartingClipQueue else { return }
+        isStartingClipQueue = true
+        /// The queue shortcut's key, still held down as it fires.
+        let shortcutKey = KeyboardShortcuts.getShortcut(for: .toggleClipQueue).map { CGKeyCode($0.carbonKeyCode) }
+        Task { @MainActor in
+            // Let go of the shortcut, then the queue appears, then ⌘C fills it:
+            // the copy lands in a queue the user can already see.
+            /// Whether the keys came up in time; if not, the queue starts empty.
+            let released = await SelectionCopy.waitForRelease(of: shortcutKey)
+            isStartingClipQueue = false
+            clipQueue.start()
+            if released { SelectionCopy.copy() }
+        }
     }
 
     func markPanelPresented() {
@@ -265,7 +289,7 @@ final class AppState {
         }
         KeyboardShortcuts.onKeyDown(for: .toggleClipQueue) { [weak self] in
             Task { @MainActor in
-                self?.toggleClipQueue()
+                self?.toggleClipQueue(fromShortcut: true)
             }
         }
         KeyboardShortcuts.onKeyDown(for: .clearHistory) { [weak self] in

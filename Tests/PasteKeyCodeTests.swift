@@ -33,4 +33,11 @@ final class PasteKeyCodeTests: XCTestCase {
     func testUppercaseResultsStillMatch() {
         XCTAssertEqual(PasteKeyCode.find(in: [layout([9: "V"])]), 9)
     }
+
+    func testCopyFindsTheKeyThatTypesC() {
+        // QWERTY C is key 8; Dvorak puts "c" on the key QWERTY calls "i" (34).
+        XCTAssertEqual(PasteKeyCode.find("c", qwerty: PasteKeyCode.qwertyC, in: [layout([8: "c"])]), 8)
+        XCTAssertEqual(PasteKeyCode.find("c", qwerty: PasteKeyCode.qwertyC, in: [layout([8: "j", 34: "c"])]), 34)
+        XCTAssertEqual(PasteKeyCode.find("c", qwerty: PasteKeyCode.qwertyC, in: [layout(hangul)]), 8)
+    }
 }

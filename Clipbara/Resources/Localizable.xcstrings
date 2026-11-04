@@ -1,6 +1,134 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Copy Selection When Starting" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auswahl beim Start kopieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar la selección al iniciar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copier la sélection au démarrage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia la selezione all’avvio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始時に選択内容をコピー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시작할 때 선택 항목 복사"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar a Seleção ao Iniciar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копировать выделение при запуске"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始时复制选中内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始時拷貝所選內容"
+          }
+        }
+      }
+    },
+    "Starting the queue with its shortcut presses ⌘C for you, so what's selected becomes the first item. Needs Accessibility permission." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn du die Warteschlange per Kurzbefehl startest, drückt Clipbara ⌘C für dich, sodass die Auswahl zum ersten Eintrag wird. Erfordert die Bedienungshilfen-Berechtigung."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al iniciar la cola con su atajo, Clipbara pulsa ⌘C por ti y lo seleccionado pasa a ser el primer elemento. Requiere permiso de Accesibilidad."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer la file avec son raccourci appuie sur ⌘C pour vous : la sélection devient le premier élément. Nécessite l’autorisation Accessibilité."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avviando la coda con la sua scorciatoia, Clipbara preme ⌘C per te e la selezione diventa il primo elemento. Richiede il permesso di Accessibilità."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ショートカットでキューを開始すると ⌘C が自動で押され、選択中の内容が最初の項目になります。アクセシビリティの許可が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "단축키로 대기열을 시작하면 ⌘C를 대신 눌러 선택한 내용이 첫 번째 항목이 됩니다. 손쉬운 사용 권한이 필요합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao iniciar a fila pelo atalho, o Clipbara pressiona ⌘C por você e a seleção vira o primeiro item. Requer permissão de Acessibilidade."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При запуске очереди сочетанием клавиш Clipbara нажимает ⌘C за вас, и выделенное становится первым элементом. Требуется разрешение Универсального доступа."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用快捷键开始队列时，会自动按一次 ⌘C，选中的内容成为第一项。需要辅助功能权限。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用快速鍵開始佇列時，會自動按一次 ⌘C，所選內容成為第一項。需要輔助使用權限。"
+          }
+        }
+      }
+    },
     "" : {
       "shouldTranslate" : false
     },
