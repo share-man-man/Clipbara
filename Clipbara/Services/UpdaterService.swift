@@ -12,8 +12,8 @@ final class CheckForUpdatesViewModel: ObservableObject {
     private var observation: NSKeyValueObservation?
 
     init() {
-        #if DEBUG
-        // The local dev build (ClipbaraDev) must not update itself to the release.
+        #if DEBUG || CLIPBARA_NO_SELF_UPDATE
+        // Local builds (ClipbaraDev, ClipbaraLocal) must not update themselves to the release.
         let startsUpdater = false
         #else
         let startsUpdater = true

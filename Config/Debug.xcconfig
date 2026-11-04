@@ -1,4 +1,4 @@
-// Debug build (ClipbaraDev) of the Clipbara target.
+// Debug build (ClipbaraDev) and Local build (ClipbaraLocal) of the Clipbara target.
 //
 // Signing comes from Config/Local.xcconfig, which is gitignored because every
 // developer has their own team. Copy Local.xcconfig.example to Local.xcconfig and
