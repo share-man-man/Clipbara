@@ -93,10 +93,16 @@ enum DesignTokens {
         static let bottomPadding: CGFloat = 16
         static let horizontalPadding: CGFloat = 16
         static let cardSpacing: CGFloat = 12
-        static let minCardHeight: CGFloat = 164
-        static let minCardWidth: CGFloat = 206
+        /// Safety floor only, kept below the smallest card the Card Size
+        /// slider produces (240pt panel: 44 nav + 24 padding + 17 always shown
+        /// scroll bar leaves 155pt). A floor inside the slider's range left
+        /// the low steps with the same card while only the panel shrank.
+        static let minCardHeight: CGFloat = 140
         /// Card width relative to its height.
         static let cardAspectRatio: CGFloat = 1.16
+        /// Width of a card at `minCardHeight`, so the width floor never kicks
+        /// in before the height floor and cards keep their proportions.
+        static let minCardWidth: CGFloat = minCardHeight * cardAspectRatio
     }
 
     // MARK: - Card Header
