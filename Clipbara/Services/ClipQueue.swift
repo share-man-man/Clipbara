@@ -50,9 +50,13 @@ final class ClipQueue {
     func stop() {
         guard isActive else { return }
         isActive = false
-        if let placed, board.ownsClipboard {
-            // Leave real data behind, not a promise nobody will keep.
-            write(placed)
+        if board.ownsClipboard {
+            // Leave real data behind, not a promise nobody will keep: the newest
+            // clip in history, so the next ⌘V pastes what tops the history list
+            // rather than whatever the queue had lined up next.
+            /// What the clipboard holds once the queue ends.
+            let restored = appState?.clipboardMonitor.newestItem() ?? placed
+            if let restored { write(restored) }
         }
         board.reset()
         placed = nil
@@ -72,6 +76,25 @@ final class ClipQueue {
         list.append(item.detachedCopy())
         // Even when the new copy is next, it has to go back on as a promise,
         // or its paste would go unnoticed.
+        lineUpNext()
+    }
+
+    /// Moves an entry into another's place in paste order.
+    /// - Parameters:
+    ///   - id: the entry being moved
+    ///   - targetID: the entry whose place it takes
+    func move(id: UUID, to targetID: UUID) {
+        /// The entry due next before the move.
+        let previousNext = list.next?.id
+        list.move(id: id, to: targetID)
+        // A different entry is due next: put it on the clipboard instead.
+        if list.next?.id != previousNext { lineUpNext() }
+    }
+
+    /// Puts an entry pasted earlier back in the queue, as the next one to paste.
+    /// - Parameter id: the pasted entry
+    func restore(id: UUID) {
+        list.restore(id: id)
         lineUpNext()
     }
 

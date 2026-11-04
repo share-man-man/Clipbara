@@ -262,6 +262,9 @@ targets:
       - path: Clipbara/Utilities/ClipQueueList.swift
       - path: Clipbara/Services/ClipQueuePasteboard.swift
       - path: Clipbara/Utilities/OwnPasteboardWrite.swift
+      - path: Clipbara/Utilities/ClipQueueWindowGeometry.swift
+      - path: Clipbara/Utilities/ListDragAutoScroll.swift
+      - path: Clipbara/Utilities/PointerDrag.swift
       - path: Clipbara/Utilities/URLCommand.swift
       - path: Clipbara/Utilities/Bundle+BuildInfo.swift
       - path: Clipbara/Services/ClipUndoStack.swift

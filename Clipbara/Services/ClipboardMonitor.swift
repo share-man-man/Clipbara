@@ -61,6 +61,17 @@ final class ClipboardMonitor {
         latestItems = (try? modelContext.fetch(limited)) ?? []
     }
 
+    /// The newest clip in history, the first one the history list shows.
+    func newestItem() -> ClipboardItem? {
+        guard let modelContext else { return nil }
+        /// Newest first, just the one.
+        var descriptor = FetchDescriptor<ClipboardItem>(
+            sortBy: [SortDescriptor(\.copiedAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        return try? modelContext.fetch(descriptor).first
+    }
+
     private func poll() {
         let pasteboard = NSPasteboard.general
         let currentCount = pasteboard.changeCount
