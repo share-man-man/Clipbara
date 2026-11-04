@@ -51,7 +51,9 @@ final class ClipQueuePasteboard: NSObject, NSPasteboardItemDataProvider {
 
         let item = NSPasteboardItem()
         item.setDataProvider(self, forTypes: contents.map(\.0))
-        for type in Self.markerTypes {
+        // The nspasteboard.org markers for other apps, plus our own so the
+        // clipboard monitor doesn't record this as a copy.
+        for type in Self.markerTypes + [OwnPasteboardWrite.type] {
             item.setData(Data(), forType: type)
         }
         // This Mac only: Universal Clipboard otherwise fetches file URLs (the

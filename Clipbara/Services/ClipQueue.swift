@@ -89,14 +89,12 @@ final class ClipQueue {
 
     private func lineUpNext() {
         guard isActive, let next = list.next, let appState else { return }
-        appState.clipboardMonitor.skipNextChange()
         board.place(appState.pasteService.contents(for: next.item, asPlainText: asPlainText))
         placed = next.item
     }
 
     private func write(_ item: ClipboardItem) {
         guard let appState else { return }
-        appState.clipboardMonitor.skipNextChange()
         appState.pasteService.write(item: item, asPlainText: asPlainText)
     }
 

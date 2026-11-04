@@ -10,7 +10,11 @@ final class ClipboardMonitor {
     private let classifier = ContentTypeClassifier()
     private var modelContext: ModelContext?
     private var excludedBundleIds: Set<String> = []
-    private var shouldSkipNextChange: Bool = false
+
+    /// How often to check the clipboard. macOS sends no notice when another app
+    /// copies, so polling is the only way; a check reads one integer, so a short
+    /// interval costs next to nothing and keeps copies from feeling late.
+    nonisolated static let pollInterval: TimeInterval = 0.1
 
     var isMonitoring: Bool = false
     /// Called with every copy Clipbara records, including one that matched a
@@ -28,11 +32,13 @@ final class ClipboardMonitor {
         loadExcludedApps()
         isMonitoring = true
 
-        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.poll()
             }
         }
+        // Let the system batch wakeups a little; the delay stays well under what a person notices.
+        timer?.tolerance = Self.pollInterval / 5
     }
 
     func stop() {
@@ -62,8 +68,10 @@ final class ClipboardMonitor {
         guard currentCount != lastChangeCount else { return }
         lastChangeCount = currentCount
 
-        if shouldSkipNextChange {
-            shouldSkipNextChange = false
+        // Our own write (a paste, or the Clip Queue lining up its next item).
+        // Checked by content: a user copy that lands between two polls is
+        // still recorded.
+        if OwnPasteboardWrite.isOwn(pasteboard) {
             return
         }
 
@@ -174,10 +182,6 @@ final class ClipboardMonitor {
             return nil
         }
         return pngData
-    }
-
-    func skipNextChange() {
-        shouldSkipNextChange = true
     }
 
     func loadExcludedApps() {

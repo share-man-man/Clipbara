@@ -138,7 +138,6 @@ final class AppState {
         // Picking a clip replaces the item the queue lined up, and the next
         // ⌘V would then drop the wrong one from the queue. End it instead.
         clipQueue.stop()
-        clipboardMonitor.skipNextChange()
         pasteService.paste(item: item, asPlainText: asPlainText)
         SoundFeedback.playPaste()
         // ⌘V has to reach the app behind the panel, so send it once the

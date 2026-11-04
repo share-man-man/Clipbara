@@ -201,7 +201,6 @@ struct MenuBarItemRow: View {
             }
             #endif
             appState.clipQueue.stop()
-            appState.clipboardMonitor.skipNextChange()
             appState.pasteService.paste(item: item)
         } label: {
             HStack(spacing: 8) {
