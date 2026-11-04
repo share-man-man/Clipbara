@@ -66,16 +66,8 @@ struct ClipbaraApp: App {
                 .modelContainer(sharedModelContainer)
         } label: {
             // A build with a badge (ClipbaraDev: "DEV") shows it next to the icon.
-            if let image = MenuBarBadgeImage.current {
-                Image(nsImage: image)
-                    .accessibilityLabel(Text(verbatim: Bundle.main.appName))
-            } else {
-                Label {
-                    Text(verbatim: Bundle.main.appName)
-                } icon: {
-                    Image(systemName: DesignTokens.MenuBar.symbolName)
-                }
-            }
+            Image(nsImage: MenuBarIconImage.current)
+                .accessibilityLabel(Text(verbatim: Bundle.main.appName))
         }
         .menuBarExtraStyle(.window)
 

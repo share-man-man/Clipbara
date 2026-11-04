@@ -2879,66 +2879,66 @@
         }
       }
     },
-    "clipboard icon" : {
+    "Clipbara icon" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zwischenablage-Symbol"
+            "value" : "Clipbara-Symbol"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "icono del portapapeles"
+            "value" : "icono de Clipbara"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "icône du presse-papiers"
+            "value" : "icône Clipbara"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "icona degli appunti"
+            "value" : "icona di Clipbara"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "クリップボードアイコン"
+            "value" : "Clipbara アイコン"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "클립보드 아이콘"
+            "value" : "Clipbara 아이콘"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ícone da área de transferência"
+            "value" : "ícone do Clipbara"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "значок буфера обмена"
+            "value" : "значок Clipbara"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "剪贴板图标"
+            "value" : "Clipbara 图标"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "剪貼板圖像"
+            "value" : "Clipbara 圖示"
           }
         }
       }

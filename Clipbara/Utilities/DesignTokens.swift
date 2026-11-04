@@ -227,8 +227,8 @@ enum DesignTokens {
     // MARK: - Menu Bar
 
     enum MenuBar {
-        /// SF Symbol of the menu bar icon, also shown where the UI points to it.
-        static let symbolName = "clipboard"
+        /// Template image asset of the menu bar icon, also shown where the UI points to it.
+        static let iconAssetName = "MenuBarIcon"
     }
 }
 

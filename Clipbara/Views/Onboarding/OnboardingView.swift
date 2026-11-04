@@ -385,8 +385,13 @@ struct OnboardingView: View {
                 .padding(.top, 9)
 
             VStack(spacing: 10) {
-                hintRow(symbol: DesignTokens.MenuBar.symbolName) {
-                    Text("Find Clipbara anytime via the \(Text("clipboard icon").bold().foregroundStyle(Color.primary)) in your menu bar. History, pinboards and settings live there.")
+                // The menu bar icon itself, so the hint matches what is in the menu bar.
+                hintRow(icon: Image(DesignTokens.MenuBar.iconAssetName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22)
+                ) {
+                    Text("Find Clipbara anytime via the \(Text("Clipbara icon").bold().foregroundStyle(Color.primary)) in your menu bar. History, pinboards and settings live there.")
                 } action: { EmptyView() }
                 hintRow(symbol: "square.and.arrow.down") {
                     HStack(spacing: 5) {
@@ -441,8 +446,30 @@ struct OnboardingView: View {
         KeyboardShortcuts.getShortcut(for: .toggleHistoryPanel)?.description ?? "⌘⇧V"
     }
 
+    /// A hint row with an SF Symbol in its tile.
+    /// - Parameters:
+    ///   - symbol: SF Symbol name shown in the tile
+    ///   - content: the hint text
+    ///   - action: a control shown at the trailing edge
     private func hintRow<Content: View, Action: View>(
         symbol: String,
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder action: () -> Action
+    ) -> some View {
+        hintRow(
+            icon: Image(systemName: symbol).font(.system(size: 15, weight: .medium)),
+            content: content,
+            action: action
+        )
+    }
+
+    /// A hint row: an icon in a tinted tile, the hint text, and an optional control.
+    /// - Parameters:
+    ///   - icon: view shown in the tile, tinted with the accent color
+    ///   - content: the hint text
+    ///   - action: a control shown at the trailing edge
+    private func hintRow<Icon: View, Content: View, Action: View>(
+        icon: Icon,
         @ViewBuilder content: () -> Content,
         @ViewBuilder action: () -> Action
     ) -> some View {
@@ -451,8 +478,7 @@ struct OnboardingView: View {
                 .fill(accent.opacity(colorScheme == .dark ? 0.18 : 0.09))
                 .frame(width: 34, height: 34)
                 .overlay(
-                    Image(systemName: symbol)
-                        .font(.system(size: 15, weight: .medium))
+                    icon
                         .foregroundStyle(accent)
                 )
             content()
