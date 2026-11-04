@@ -7,7 +7,10 @@ import UniformTypeIdentifiers
 struct GeneralSettingsTab: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
-    @AppStorage("historyLimit") private var historyLimit: Int = 500
+    /// Maximum number of unpinned clips kept (0 = unlimited).
+    @AppStorage(ClipboardMonitor.historyLimitDefaultsKey) private var historyLimit: Int = ClipboardMonitor.defaultHistoryLimit
+    /// How long unpinned clips are kept.
+    @AppStorage(HistoryRetention.defaultsKey) private var historyRetention: HistoryRetention = HistoryRetention.defaultValue
     /// Short sounds on copy and paste.
     @AppStorage(SoundFeedback.defaultsKey) private var playsSounds: Bool = false
     @AppStorage(PasteService.alwaysPlainTextDefaultsKey) private var alwaysPastePlainText: Bool = false
@@ -31,6 +34,26 @@ struct GeneralSettingsTab: View {
                 Text("Unlimited").tag(0)
             }
             .pickerStyle(.menu)
+            .onChange(of: historyLimit) {
+                appState.clipboardMonitor.applyHistoryRules()
+            }
+
+            Picker(selection: $historyRetention) {
+                ForEach(HistoryRetention.allCases) { retention in
+                    Text(retention.displayName).tag(retention)
+                }
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Keep History For")
+                    Text("Older clips are deleted. Pinned clips are always kept.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .pickerStyle(.menu)
+            .onChange(of: historyRetention) {
+                appState.clipboardMonitor.applyHistoryRules()
+            }
 
             Toggle("Play Sounds", isOn: $playsSounds)
 

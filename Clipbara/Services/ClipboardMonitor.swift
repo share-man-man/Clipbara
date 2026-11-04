@@ -6,6 +6,9 @@ import CryptoKit
 @Observable
 final class ClipboardMonitor {
     private var timer: Timer?
+    /// Removes expired clips while no copies happen, since time-based retention
+    /// can expire clips without anything new arriving.
+    private var cleanupTimer: Timer?
     private var lastChangeCount: Int = 0
     private let classifier = ContentTypeClassifier()
     private var modelContext: ModelContext?
@@ -15,6 +18,12 @@ final class ClipboardMonitor {
     /// copies, so polling is the only way; a check reads one integer, so a short
     /// interval costs next to nothing and keeps copies from feeling late.
     nonisolated static let pollInterval: TimeInterval = 0.1
+    /// How often expired clips are swept while the app is idle.
+    nonisolated static let cleanupInterval: TimeInterval = 60 * 60
+    /// UserDefaults key for the History Limit (number of unpinned clips, 0 = unlimited).
+    nonisolated static let historyLimitDefaultsKey = "historyLimit"
+    /// History Limit used when nothing is stored.
+    nonisolated static let defaultHistoryLimit = 500
 
     var isMonitoring: Bool = false
     /// Called with every copy Clipbara records, including one that matched a
@@ -22,8 +31,8 @@ final class ClipboardMonitor {
     @ObservationIgnored var onCapture: ((ClipboardItem) -> Void)?
     var latestItems: [ClipboardItem] = []
     var historyLimit: Int {
-        get { UserDefaults.standard.object(forKey: "historyLimit") as? Int ?? 500 }
-        set { UserDefaults.standard.set(newValue, forKey: "historyLimit") }
+        get { UserDefaults.standard.object(forKey: Self.historyLimitDefaultsKey) as? Int ?? Self.defaultHistoryLimit }
+        set { UserDefaults.standard.set(newValue, forKey: Self.historyLimitDefaultsKey) }
     }
 
     func start(modelContext: ModelContext) {
@@ -39,11 +48,23 @@ final class ClipboardMonitor {
         }
         // Let the system batch wakeups a little; the delay stays well under what a person notices.
         timer?.tolerance = Self.pollInterval / 5
+
+        // Drop clips that expired while the app was not running, then keep sweeping hourly.
+        cleanupOldItems()
+        cleanupTimer?.invalidate()
+        cleanupTimer = Timer.scheduledTimer(withTimeInterval: Self.cleanupInterval, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.cleanupOldItems()
+            }
+        }
+        cleanupTimer?.tolerance = Self.cleanupInterval / 10
     }
 
     func stop() {
         timer?.invalidate()
         timer = nil
+        cleanupTimer?.invalidate()
+        cleanupTimer = nil
         isMonitoring = false
     }
 
@@ -128,29 +149,64 @@ final class ClipboardMonitor {
         onCapture?(item)
     }
 
-    /// 히스토리 제한 초과 시 오래된 아이템 삭제 (isPinned 아이템 보존)
-    private func cleanupOldItems() {
-        guard let modelContext, historyLimit > 0 else { return }
+    /// Applies the History Limit and Keep History For settings now, for example
+    /// right after either one changes in Settings.
+    func applyHistoryRules() {
+        cleanupOldItems()
+        refreshLatestItems()
+    }
 
+    /// Deletes unpinned clips older than the retention period, then the oldest
+    /// unpinned clips beyond the History Limit. Pinned clips are always kept.
+    private func cleanupOldItems() {
+        guard let modelContext else { return }
+
+        // 1. Time-based retention: everything unpinned copied before the cutoff.
+        if let cutoff = HistoryRetention.current.cutoff(from: Date()) {
+            /// Unpinned clips copied before the cutoff.
+            let expiredDescriptor = FetchDescriptor<ClipboardItem>(
+                predicate: #Predicate { !$0.isPinned && $0.copiedAt < cutoff }
+            )
+            if let expired = try? modelContext.fetch(expiredDescriptor) {
+                delete(expired, in: modelContext)
+            }
+        }
+
+        // 2. Count-based limit: the oldest unpinned clips beyond the limit.
+        /// Snapshot of the limit so both reads below agree.
+        let limit = historyLimit
+        guard limit > 0 else { return }
+
+        /// Counts the unpinned clips.
         let countDescriptor = FetchDescriptor<ClipboardItem>(
             predicate: #Predicate { !$0.isPinned }
         )
+        /// Number of unpinned clips in history.
         let unpinnedCount = (try? modelContext.fetchCount(countDescriptor)) ?? 0
 
-        guard unpinnedCount > historyLimit else { return }
+        guard unpinnedCount > limit else { return }
 
-        let deleteCount = unpinnedCount - historyLimit
+        /// Oldest unpinned clips first, just the ones over the limit.
         var fetchDescriptor = FetchDescriptor<ClipboardItem>(
             predicate: #Predicate { !$0.isPinned },
             sortBy: [SortDescriptor(\.copiedAt, order: .forward)]
         )
-        fetchDescriptor.fetchLimit = deleteCount
+        fetchDescriptor.fetchLimit = unpinnedCount - limit
 
         guard let itemsToDelete = try? modelContext.fetch(fetchDescriptor) else { return }
+        delete(itemsToDelete, in: modelContext)
+    }
 
-        for item in itemsToDelete {
-            // 연관 PinboardEntry 제거
+    /// Deletes clips along with any pinboard entries that point at them, then saves.
+    /// - Parameters:
+    ///   - items: The clips to delete.
+    ///   - modelContext: The context the clips live in.
+    private func delete(_ items: [ClipboardItem], in modelContext: ModelContext) {
+        guard !items.isEmpty else { return }
+        for item in items {
+            /// The clip's id, captured for the predicate.
             let itemId = item.id
+            /// Pinboard entries that reference this clip.
             let entryDescriptor = FetchDescriptor<PinboardEntry>(
                 predicate: #Predicate { $0.clipboardItem?.id == itemId }
             )
