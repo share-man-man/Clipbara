@@ -61,6 +61,9 @@ enum SettingsWindowFront {
 
     fileprivate static func attach(_ window: NSWindow) {
         self.window = window
+        // Apply after SwiftUI installs the Settings toolbar so its navigation
+        // buttons share the title bar with the selected pane's native title.
+        DispatchQueue.main.async { window.toolbarStyle = .unifiedCompact }
         orderFront()
     }
 

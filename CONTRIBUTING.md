@@ -58,7 +58,7 @@ Use `pkill -f ClipbaraDev.app`, not `Clipbara.app`, which also quits an installe
 
 `bash scripts/install-local.sh` builds the Local configuration, installs it to `/Applications/ClipbaraLocal.app` and relaunches it. It is sandboxed, so its data lives in its own container. The `CLIPBARA_NO_SELF_UPDATE` compilation condition turns Sparkle off; with it on, Sparkle would replace the app with the upstream release.
 
-The build settings `CLIPBARA_BUILD_BADGE` (a badge next to the menu bar icon) and `CLIPBARA_BUILD_BANNER` (the orange header at the top of the menu) reach Info.plist as `ClipbaraBuildBadge` and `ClipbaraBuildBanner`, which `Bundle+BuildInfo.swift` reads. Empty means not shown. Don't check in code whether this is a development build; set these per configuration in `project.yml` instead. If you change `AppIcon`, regenerate `AppIcon-Dev` with `bash scripts/make-dev-icon.sh`.
+The build settings `CLIPBARA_BUILD_BADGE` (a badge next to the menu bar icon) and `CLIPBARA_BUILD_BANNER` (the build label at the top of the menu) reach Info.plist as `ClipbaraBuildBadge` and `ClipbaraBuildBanner`, which `Bundle+BuildInfo.swift` reads. Empty means not shown. Don't check in code whether this is a development build; set these per configuration in `project.yml` instead. If you change `AppIcon`, regenerate `AppIcon-Dev` with `bash scripts/make-dev-icon.sh`.
 
 ## Architecture
 

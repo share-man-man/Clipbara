@@ -4,7 +4,7 @@ import SwiftData
 
 /// Shows the first-run welcome tour in a standalone window.
 /// The tour appears once (tracked via UserDefaults) and can be reopened
-/// from Settings → General → "Show Welcome Tour".
+/// from Settings → About → "Show Welcome Tour".
 @MainActor
 final class OnboardingWindowController: NSObject, NSWindowDelegate {
     static let shared = OnboardingWindowController()

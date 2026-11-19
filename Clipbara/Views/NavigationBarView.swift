@@ -33,7 +33,8 @@ struct NavigationBarView: View {
     /// Natural width of all tabs. The tab row is no wider than this, so a
     /// short row stays centered instead of stretching to the right.
     @State private var tabContentWidth: CGFloat = .infinity
-    @State private var isShowingClearAlert = false
+    /// A snapshot of clips included in the clear-history confirmation.
+    @State private var pendingClearIDs: Set<UUID> = []
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
@@ -55,15 +56,10 @@ struct NavigationBarView: View {
         .onChange(of: appState.clearHistoryRequested) { _, newValue in
             if newValue {
                 appState.clearHistoryRequested = false
-                isShowingClearAlert = clearableHistoryCount > 0
+                requestClearHistory()
             }
         }
-        .alert("Clear Clipboard History?", isPresented: $isShowingClearAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Clear History", role: .destructive) { clearHistory() }
-        } message: {
-            Text("This deletes \(clearableHistoryCount) unpinned clips from history. Pinboard items stay available.")
-        }
+        .modifier(ClearHistoryConfirmation(selectedIDs: $pendingClearIDs))
         .alert("Delete Pinboard?", isPresented: .init(
             get: { deletingPinboard != nil },
             set: { if !$0 { deletingPinboard = nil } }
@@ -248,7 +244,7 @@ struct NavigationBarView: View {
                 iconSize: 13,
                 colorScheme: colorScheme
             ) {
-                isShowingClearAlert = true
+                requestClearHistory()
             }
             .disabled(!canClearHistory)
             .opacity(canClearHistory ? 1 : 0.45)
@@ -336,13 +332,8 @@ struct NavigationBarView: View {
         OptionsMenuButton(colorScheme: colorScheme)
     }
 
-    private var pinnedItemIDs: Set<UUID> {
-        Set(pinboardEntries.compactMap { $0.clipboardItem?.id })
-    }
-
     private var clearableHistoryItems: [ClipboardItem] {
-        let pinned = pinnedItemIDs
-        return historyItems.filter { !pinned.contains($0.id) }
+        HistoryRetention.clearableItems(historyItems, entries: pinboardEntries)
     }
 
     private var clearableHistoryCount: Int {
@@ -405,11 +396,9 @@ struct NavigationBarView: View {
         appState.panelController.selectTab(.pinboard(pinboard.id))
     }
 
-    private func clearHistory() {
-        for item in clearableHistoryItems {
-            modelContext.delete(item)
-        }
-        try? modelContext.save()
+    /// Freezes the panel's current selection for the shared confirmation.
+    private func requestClearHistory() {
+        pendingClearIDs = Set(clearableHistoryItems.map(\.id))
     }
 
     private func addDroppedClip(from providers: [NSItemProvider], to pinboardId: UUID) -> Bool {
@@ -635,7 +624,7 @@ private struct OptionsMenuButton: View {
     private func showMenu() {
         let menu = NSMenu()
 
-        // The same setting as Settings > General, surfaced where pasting
+        // The same setting as Settings > Pasting, surfaced where pasting
         // happens (#49), with the one-off Shift switch spelled out below it.
         let plainTextItem = NSMenuItem(title: String(localized: "Always Paste as Plain Text"), action: nil, keyEquivalent: "")
         plainTextItem.state = UserDefaults.standard.bool(forKey: PasteService.alwaysPlainTextDefaultsKey) ? .on : .off

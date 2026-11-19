@@ -15,6 +15,7 @@ enum AppTheme: String, CaseIterable {
     }
 }
 
+@MainActor
 struct AppearanceSettingsTab: View {
     @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
     @AppStorage(PanelController.animatesPanelDefaultsKey) private var animatesPanel: Bool = true
@@ -34,10 +35,7 @@ struct AppearanceSettingsTab: View {
 
     var body: some View {
         form
-            .padding()
-        .onAppear {
-            applyTheme(appTheme)
-        }
+            .onAppear { applyTheme(appTheme) }
     }
 
     /// The settings, in grouped boxes.
@@ -53,25 +51,15 @@ struct AppearanceSettingsTab: View {
                 applyTheme(newValue)
             }
 
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Animate Panel")
-                    Group {
-                        if reducesMotion {
-                            Text("Off while Reduce Motion is on in System Settings > Accessibility > Display.")
-                        } else {
-                            Text("Slide the history panel in and out. When off, it appears and closes at once.")
-                        }
-                    }
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+            Toggle(isOn: $animatesPanel) {
+                Text("Animate Panel")
+                if reducesMotion {
+                    Text("Off while Reduce Motion is on in System Settings > Accessibility > Display.")
+                } else {
+                    Text("Slide the history panel in and out. When off, it appears and closes at once.")
                 }
-                Spacer()
-                Toggle("", isOn: $animatesPanel)
-                    .labelsHidden()
-                    .disabled(reducesMotion)
             }
+            .disabled(reducesMotion)
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(
                 for: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification
             )) { _ in
@@ -132,7 +120,6 @@ struct AppearanceSettingsTab: View {
                 }
             }
         }
-        .formStyle(.grouped)
     }
 
     /// Whether every setting on this tab already has its default value.

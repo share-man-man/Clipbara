@@ -15,6 +15,14 @@ final class PanelController {
     private var quickLookItem: ClipboardItem?
     private var quickLookZoom: ImageZoomController?
     private(set) var isVisible: Bool = false
+    /// The window is still visible while its content slides out.
+    private var isHiding = false
+    /// An odd number of shortcut presses during that slide requests a reopen.
+    private var reopenAfterHiding = false
+    /// Paste and Settings actions wait until the window has left the screen.
+    private var hideCompletions: [@MainActor @Sendable () -> Void] = []
+    /// Open menus can keep KeyboardShortcuts in menu-tracking mode after the panel closes.
+    private let trackingMenus = NSHashTable<NSMenu>.weakObjects()
     private var clickMonitor: Any?
     private var mouseMonitor: Any?
     private var scrollMonitor: Any?
@@ -130,8 +138,14 @@ final class PanelController {
         }.flatMap { $0.frame.intersects(bounds) ? $0 : nil }
     }
 
+    /// Toggles the panel, queuing a reopen if its close animation is still running.
+    /// - Parameters:
+    ///   - modelContainer: The store supplying the panel's clipboard items.
+    ///   - appState: The application state used by the panel content.
     func toggle(modelContainer: ModelContainer, appState: AppState) {
-        if isVisible {
+        if isHiding {
+            reopenAfterHiding.toggle()
+        } else if isVisible {
             hidePanel()
         } else {
             showPanel(modelContainer: modelContainer, appState: appState)
@@ -220,6 +234,7 @@ final class PanelController {
 
         isVisible = true
         appState.markPanelPresented()
+        observeMenuTracking()
         installClickMonitor()
         installMouseMonitor()
         installScrollMonitor()
@@ -229,7 +244,7 @@ final class PanelController {
 
     private func slideContentIn() {
         Task { @MainActor [weak self] in
-            guard let self, let contentHost = self.contentHost else { return }
+            guard let self, self.isVisible, !self.isHiding, let contentHost = self.contentHost else { return }
             NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.25
                 context.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -257,7 +272,7 @@ final class PanelController {
     }
 
     func restoreKeyboardNavigationFocus(activateApp: Bool = false) {
-        guard isVisible, let panel else { return }
+        guard isVisible, !isHiding, let panel else { return }
         if activateApp {
             NSApp.activate(ignoringOtherApps: true)
         }
@@ -266,9 +281,16 @@ final class PanelController {
         panel.makeFirstResponder(nil)
     }
 
+    /// Hides the panel and finishes any pending work once it is off screen.
     /// - Parameter completion: Runs after the panel has left the screen.
     func hidePanel(then completion: (@MainActor @Sendable () -> Void)? = nil) {
         guard isVisible, let panel else { return }
+        if let completion { hideCompletions.append(completion) }
+        // A new explicit hide takes precedence over a pending hotkey reopen.
+        reopenAfterHiding = false
+        guard !isHiding else { return }
+        isHiding = true
+        stopMenuTracking()
         #if APPSTORE
         ClipSync.shared.stopLivePolling()
         #endif
@@ -288,7 +310,7 @@ final class PanelController {
             panel.orderOut(nil)
             self?.contentHost?.frame.origin.y = 0
             self?.isVisible = false
-            completion?()
+            self?.finishHiding()
         }
 
         guard Self.animatesPanel else {
@@ -307,6 +329,49 @@ final class PanelController {
                 finish()
             }
         })
+    }
+
+    /// Drains close callbacks once and honors shortcut presses made during the slide.
+    private func finishHiding() {
+        isHiding = false
+        /// Snapshot both values before callbacks can open the panel again.
+        let completions = hideCompletions
+        /// Reopen only if an odd number of toggles arrived during this slide.
+        let shouldReopen = reopenAfterHiding
+        hideCompletions.removeAll()
+        reopenAfterHiding = false
+        for completion in completions { completion() }
+        if shouldReopen, !isVisible { appState?.togglePanel() }
+    }
+
+    /// Tracks AppKit's synchronous menu notifications while the panel is visible.
+    private func observeMenuTracking() {
+        /// AppKit posts both tracking notifications on the main thread.
+        let center = NotificationCenter.default
+        center.addObserver(self, selector: #selector(menuDidBeginTracking(_:)), name: NSMenu.didBeginTrackingNotification, object: nil)
+        center.addObserver(self, selector: #selector(menuDidEndTracking(_:)), name: NSMenu.didEndTrackingNotification, object: nil)
+    }
+
+    /// Records a menu that may need to be dismissed along with the panel.
+    /// - Parameter note: The AppKit notification containing the tracking menu.
+    @objc private func menuDidBeginTracking(_ note: Notification) {
+        if let menu = note.object as? NSMenu { trackingMenus.add(menu) }
+    }
+
+    /// Removes a menu that AppKit has already dismissed.
+    /// - Parameter note: The AppKit notification containing the finished menu.
+    @objc private func menuDidEndTracking(_ note: Notification) {
+        if let menu = note.object as? NSMenu { trackingMenus.remove(menu) }
+    }
+
+    /// Dismisses active menus so the next global shortcut can be delivered immediately.
+    private func stopMenuTracking() {
+        /// Stop observing before cancelling, since cancellation can post more notifications.
+        let center = NotificationCenter.default
+        center.removeObserver(self, name: NSMenu.didBeginTrackingNotification, object: nil)
+        center.removeObserver(self, name: NSMenu.didEndTrackingNotification, object: nil)
+        for menu in trackingMenus.allObjects { menu.cancelTrackingWithoutAnimation() }
+        trackingMenus.removeAllObjects()
     }
 
     // MARK: - Layout Settings (resize the open panel)

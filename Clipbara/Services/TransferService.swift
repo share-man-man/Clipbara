@@ -190,6 +190,8 @@ enum TransferService {
         for record in doc.entries {
             guard let board = boardByExportID[record.pinboardID],
                   let item = itemByExportID[record.itemID] else { continue }
+            // A deduplicated local clip can still be unpinned when the backup adds it to a board.
+            item.isPinned = true
             let alreadyLinked = board.entries.contains { $0.clipboardItem?.contentHash == item.contentHash }
             if alreadyLinked { continue }
             let entry = PinboardEntry(clipboardItem: item, pinboard: board, displayOrder: record.displayOrder)

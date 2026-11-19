@@ -5,7 +5,7 @@ struct PasteService {
 
     private static let tempDir = NSTemporaryDirectory() + "Clipbara/"
 
-    /// Backing key for the "Always Paste as Plain Text" setting (Settings > General).
+    /// Backing key for the "Always Paste as Plain Text" setting (Settings > Pasting).
     nonisolated static let alwaysPlainTextDefaultsKey = "alwaysPastePlainText"
 
     /// Whether stripping formatting is meaningful for this item (RTF/HTML only).

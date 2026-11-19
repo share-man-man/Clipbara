@@ -16,7 +16,7 @@ extension Bundle {
         nonEmptyInfoString("ClipbaraBuildBadge")
     }
 
-    /// Text of the orange header at the top of the menu (`ClipbaraBuildBanner`, from
+    /// Text of the build label at the top of the menu (`ClipbaraBuildBanner`, from
     /// `CLIPBARA_BUILD_BANNER`), or nil when the build has none.
     var buildBanner: String? {
         nonEmptyInfoString("ClipbaraBuildBanner")

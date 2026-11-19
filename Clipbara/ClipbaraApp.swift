@@ -69,7 +69,7 @@ struct ClipbaraApp: App {
             Image(nsImage: MenuBarIconImage.current)
                 .accessibilityLabel(Text(verbatim: Bundle.main.appName))
         }
-        .menuBarExtraStyle(.window)
+        .menuBarExtraStyle(.menu)
 
         Settings {
             SettingsView()
@@ -77,6 +77,8 @@ struct ClipbaraApp: App {
                 .environmentObject(updaterViewModel)
                 .modelContainer(sharedModelContainer)
         }
+        .defaultSize(width: 750, height: 605)
+        .windowResizability(.contentMinSize)
     }
 
     init() {

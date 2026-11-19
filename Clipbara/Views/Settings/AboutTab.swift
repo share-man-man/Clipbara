@@ -1,7 +1,9 @@
 import SwiftUI
 
+@MainActor
 struct AboutTab: View {
     @EnvironmentObject private var updaterViewModel: CheckForUpdatesViewModel
+    @Environment(AppState.self) private var appState
 
     private var appVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
@@ -12,34 +14,28 @@ struct AboutTab: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer()
+        Form {
+            Section {
+                LabeledContent {
+                    Text("Version \(appVersion) (\(buildNumber))")
+                } label: {
+                    Text(verbatim: Bundle.main.appName)
+                    Text("A simple clipboard manager for macOS.")
+                }
 
-            Image(systemName: "clipboard")
-                .font(.system(size: 64))
-                .foregroundStyle(.tint)
+                #if !APPSTORE
+                Button("Check for Updates…") {
+                    updaterViewModel.checkForUpdates()
+                }
+                .disabled(!updaterViewModel.canCheckForUpdates)
+                #endif
 
-            Text(verbatim: Bundle.main.appName)
-                .font(.title.bold())
-
-            Text("Version \(appVersion) (\(buildNumber))")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-
-            Text("A simple clipboard manager for macOS.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-
-            #if !APPSTORE
-            Button("Check for Updates...") {
-                updaterViewModel.checkForUpdates()
+                Button("Show Welcome Tour…") {
+                    // The tour uses the current installation's store.
+                    guard let container = appState.modelContainer else { return }
+                    OnboardingWindowController.shared.show(appState: appState, modelContainer: container)
+                }
             }
-            .disabled(!updaterViewModel.canCheckForUpdates)
-            #endif
-
-            Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .padding()
     }
 }

@@ -281,15 +281,23 @@ final class AppState {
 
     var clearHistoryRequested = false
 
+    /// Menu tracking can deliver one physical key press through multiple event monitors.
+    @ObservationIgnored private var panelHotkeyFilter = RepeatedPressFilter()
+    /// The queue shortcut can be used immediately after the history shortcut.
+    @ObservationIgnored private var queueHotkeyFilter = RepeatedPressFilter()
+
+    /// Registers the history, queue and clear-history shortcuts once at launch.
     private func setupHotkey() {
         KeyboardShortcuts.onKeyDown(for: .toggleHistoryPanel) { [weak self] in
             Task { @MainActor in
-                self?.togglePanel()
+                guard let self, self.panelHotkeyFilter.accept() else { return }
+                self.togglePanel()
             }
         }
         KeyboardShortcuts.onKeyDown(for: .toggleClipQueue) { [weak self] in
             Task { @MainActor in
-                self?.toggleClipQueue(fromShortcut: true)
+                guard let self, self.queueHotkeyFilter.accept() else { return }
+                self.toggleClipQueue(fromShortcut: true)
             }
         }
         KeyboardShortcuts.onKeyDown(for: .clearHistory) { [weak self] in
